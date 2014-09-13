@@ -1,1 +1,1 @@
-angular.module('second', []);
+angular.module('second', ['templates.second-module']);
