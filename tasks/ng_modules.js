@@ -25,12 +25,11 @@ module.exports = function (grunt) {
             // to the results, where the Key is the fully built destination path,
             // and the source is the fully built array of source paths
             var module = options.modules[i],
-                dest = path.join(options.dest, module + extension),
-                src = sources.map(function(src) {
-                    return path.join(options.src, module, src)
-                });
+                _dest = path.join(options.dest, module + extension);
 
-            result[dest] = src;
+            result[_dest] = sources.map(function(_src) {
+                return path.join(options.src, module, _src)
+            });
         }
 
         return result;
@@ -61,6 +60,11 @@ module.exports = function (grunt) {
             '**/module.js',
             '**/*.js'
         ]);
+
+        config('uglify:ng_modules_js', '.min.js', [
+            '**/module.js',
+            '**/*.js'
+        ]);
     }
 
     function concatCss() {
@@ -86,31 +90,77 @@ module.exports = function (grunt) {
         grunt.task.run('copy');
     }
 
+    function cacheHtml() {
+        options.modules.forEach(function(module) {
+            var name = 'html2js.'+module;
+
+            grunt.task.registerTask(name, 'Create a module for the thing', function(arg1, arg2) {});
+            grunt.config(name+'.dest', path.join(options.dest, module + '-templates.min.js'));
+            grunt.config(name+'.src', [
+                path.join(options.src, module, '**/*.html')
+            ]);
+
+            grunt.config(name+'.options.htmlmin', {
+                collapseBooleanAttributes: true,
+                collapseWhitespace: true,
+                removeAttributeQuotes: true,
+                removeComments: true,
+                removeEmptyAttributes: true,
+                removeRedundantAttributes: true,
+                removeScriptTypeAttributes: true,
+                removeStyleLinkTypeAttributes: true
+            });
+        });
+
+        grunt.config('html2js.options.module', function(path, module) {
+            return 'templates.'+module;
+        });
+
+        grunt.task.run('html2js');
+    }
+
+    function minifyCache() {
+        grunt.config('uglify.ng_template_js.files', [{
+            expand: true,
+            cwd: options.dest,
+            src: '*-templates.min.js',
+            dest: options.dest
+        }]);
+
+        grunt.task.run('uglify:ng_template_js');
+    }
+
     // =====================
     // === Register Task ===
     // =====================
-    grunt.registerTask('ng_modules', 'An opinionated plugin for organizing Angular source code', function () {
+    grunt.registerMultiTask('ng_modules', 'An opinionated plugin for organizing Angular source code', function () {
         options = this.options({
-            src: '',
-            dest: '',
             viewDir: 'html',
+            cacheViews: false,
             minify: false,
             minifyOnly: false
         });
+        options.src = this.data.src;
+        options.dest = this.data.dest;
         options.modules = options.modules || fs.readdirSync(options.src);
         options.minify = options.minify || options.minifyOnly;
 
         if(!options.minifyOnly) {
-            concatJs(options);
-            concatCss(options);
+            concatJs();
+            concatCss();
         }
 
         if(options.minify === true) {
-            minifyJs(options);
-            minifyCss(options);
+            minifyJs();
+            minifyCss();
         }
 
-        copyHtml(options);
+        if(options.cacheViews) {
+            cacheHtml();
+            minifyCache();
+        } else {
+            copyHtml();
+        }
     });
 
 };

@@ -30,8 +30,7 @@ module.exports = function (grunt) {
 
 
         // Dependency Tasks
-        copy: {
-        },
+        copy: {},
         concat: {
             options: {
                 separator: '\n\n'
@@ -40,17 +39,28 @@ module.exports = function (grunt) {
             ng_modules_css: {}
         },
         uglify: {
-            ng_modules_js: {}
+            ng_modules_js: {},
+            ng_template_js: {}
         },
         cssmin: {
             ng_modules_css: {}
         },
+        html2js: {},
 
         // Configuration to be run (and then tested).
         ng_modules: {
             options: {
                 minify: true,
-                viewDir: 'partials',
+                viewDir: 'partials'
+            },
+            modules: {
+                src: 'test/modules',
+                dest: 'tmp'
+            },
+            template_modules: {
+                options: {
+                    cacheViews: true
+                },
                 src: 'test/modules',
                 dest: 'tmp'
             }
@@ -58,7 +68,7 @@ module.exports = function (grunt) {
 
         // Unit tests.
         nodeunit: {
-            tests: ['test/*_test.js']
+            tests: ['test/*_test*.js']
         }
 
     });
@@ -74,6 +84,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
+    grunt.loadNpmTasks('grunt-html2js');
 
     // Whenever the "test" task is run, first clean the "tmp" dir, then run this
     // plugin's task(s), then test the result.
