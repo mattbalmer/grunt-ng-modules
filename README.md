@@ -16,6 +16,7 @@ This plugin deals with Angular modules in a very strict way. Below is the recomm
             |-- /providers
             |-- /services
             |-- /controllers
+            |-- /views
             `-- /directives
                 |-- /directive-one
                 `-- /directive-two
@@ -60,18 +61,6 @@ grunt.initConfig({
 
 ### Options
 
-#### options.src
-Type: `String`
-Default value: `''`
-
-The source directory where all modules are stored.
-
-#### options.dest
-Type: `String`
-Default value: `''`
-
-The destination directory where all distribution files should be creatd.
-
 #### options.minify
 Type: `Boolean`
 Default value: `false`
@@ -84,6 +73,26 @@ Default value: `'html'`
 
 The name of the directory where all view (.html) files are copied to.
 
+#### options.cacheViews
+Type: `Boolean`
+Default value: `false`
+
+If true - the plugin will create an Angular module (named 'templates.{module-name}') and load all views for that module into the templateCache. This creates a new file, named `{module-name}-templates.min.js`
+
+### Targets
+
+#### target.src
+Type: `String`
+Default value: `''`
+
+The source directory where all modules are stored.
+
+#### target.dest
+Type: `String`
+Default value: `''`
+
+The destination directory where all distribution files should be created.
+
 ### Usage Examples
 
 ```js
@@ -91,7 +100,16 @@ grunt.initConfig({
   ng_modules: {
     options: {
       minify: true,
-      viewDir: 'partials',
+      viewDir: 'partials'
+    },
+    local: {
+      src: 'angular/modules',
+      dest: 'static/ng-modules'
+    },
+    production: {
+      options: {
+        cacheViews: true
+      },
       src: 'angular/modules',
       dest: 'static/ng-modules'
     }
