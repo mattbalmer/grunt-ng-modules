@@ -112,6 +112,13 @@ module.exports = function (grunt) {
             });
         });
 
+        //todo: strip prefix, prepend prefix
+        grunt.config('html2js.options.base', 'test/modules');
+        grunt.config('html2js.options.rename', function(name) {
+            grunt.log.writeln('name', name);
+            return name;
+        });
+        grunt.config('html2js.options.singleModule', true);
         grunt.config('html2js.options.module', function(path, module) {
             return 'templates.'+module;
         });
@@ -157,7 +164,7 @@ module.exports = function (grunt) {
 
         if(options.cacheViews) {
             cacheHtml();
-            minifyCache();
+//            minifyCache();
         } else {
             copyHtml();
         }
