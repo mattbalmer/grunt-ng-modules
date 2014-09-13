@@ -94,7 +94,7 @@ module.exports = function (grunt) {
         options.modules.forEach(function(module) {
             var name = 'html2js.'+module;
 
-            grunt.task.registerTask(name, 'Create a module for the thing', function(arg1, arg2) {});
+            grunt.task.registerTask(name, 'Create templateCache files for the html', function() {});
             grunt.config(name+'.dest', path.join(options.dest, module + '-templates.min.js'));
             grunt.config(name+'.src', [
                 path.join(options.src, module, '**/*.html')
@@ -140,6 +140,14 @@ module.exports = function (grunt) {
     // === Register Task ===
     // =====================
     grunt.registerMultiTask('ng_modules', 'An opinionated plugin for organizing Angular source code', function () {
+        // === Load dependent tasks
+        grunt.loadNpmTasks('grunt-contrib-concat');
+        grunt.loadNpmTasks('grunt-contrib-copy');
+        grunt.loadNpmTasks('grunt-contrib-uglify');
+        grunt.loadNpmTasks('grunt-contrib-cssmin');
+        grunt.loadNpmTasks('grunt-html2js');
+
+        // === Set options
         options = this.options({
             viewDir: 'html',
             cacheViews: false,
@@ -151,6 +159,7 @@ module.exports = function (grunt) {
         options.modules = options.modules || fs.readdirSync(options.src);
         options.minify = options.minify || options.minifyOnly;
 
+        // === Run the task
         if(!options.minifyOnly) {
             concatJs();
             concatCss();
