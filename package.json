@@ -1,7 +1,7 @@
 {
   "name": "grunt-ng-modules",
   "description": "An opinionated plugin for organizing Angular source code",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "homepage": "https://github.com/mattbalmer/grunt-ng-modules",
   "author": {
     "name": "Matt Balmer",
