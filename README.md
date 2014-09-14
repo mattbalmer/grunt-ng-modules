@@ -62,22 +62,43 @@ grunt.initConfig({
 ### Options
 
 #### options.minify
-Type: `Boolean`
+Type: `Boolean|String|Object`
 Default value: `false`
 
-Whether or not to create minified (.min.*) versions of the distribution files.
+Whether or not to create minified (`.min.*`) versions of the distribution files.
+
+Can also be a string `'only'`. If this is the value, *only* minified version of the files will be created.
+
+Can also be an object, which allows you to specify `.css` and `.js` separately
+
+    minify: {
+        css: 'only,
+        js: true
+    }
+
+#### options.jsDir
+Type: `String`
+Default value: `''`
+
+The name of the directory where all `.js` files are copied to (appended to `target.dest`) 
+
+#### options.cssDir
+Type: `String`
+Default value: `''`
+
+The name of the directory where all `.css` files are copied to (appended to `target.dest`)
 
 #### options.viewDir
 Type: `String`
 Default value: `'html'`
 
-The name of the directory where all view (.html) files are copied to.
+The name of the directory where all view (`.html`) files are copied to.
 
 #### options.cacheViews
 Type: `Boolean`
 Default value: `false`
 
-If true - the plugin will create an Angular module (named 'templates.{module-name}') and load all views for that module into the templateCache. This creates a new file, named `{module-name}-templates.min.js`
+If true - the plugin will create an Angular module (named `templates.{module-name}`) and load all views for that module into the templateCache. This creates a new file, named `{module-name}-templates.min.js`
 
 ### Targets
 

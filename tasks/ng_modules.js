@@ -17,15 +17,16 @@ module.exports = function (grunt) {
     // =====================
     // === Path Creation ===
     // =====================
-    function customize(extension, sources) {
+    function customize(extension, sources, destDir) {
         var result = {};
+        destDir = destDir || '';
 
         for(var i = 0, len = options.modules.length; i < len; i++) {
             // Loop through the modules array, and add a Key-Value pair
             // to the results, where the Key is the fully built destination path,
             // and the source is the fully built array of source paths
             var module = options.modules[i],
-                _dest = path.join(options.dest, module + extension);
+                _dest = path.join(options.dest, destDir, module + extension);
 
             result[_dest] = sources.map(function(_src) {
                 return path.join(options.src, module, _src)
@@ -35,11 +36,11 @@ module.exports = function (grunt) {
         return result;
     }
 
-    function config(task, extension, sources) {
+    function config(task, dir, extension, sources) {
         var configName = task.replace(/:/gi, '.') + '.files';
 
         grunt.config(configName,
-            customize(extension, sources)
+            customize(extension, sources, dir)
         );
 
         grunt.task.run(task);
@@ -49,45 +50,40 @@ module.exports = function (grunt) {
     // === Task Building ===
     // =====================
     function concatJs() {
-        config('concat:ng_modules_js', '.js', [
+        config('concat:ng_modules_js', options.jsDir, '.js', [
             '**/module.js',
             '**/*.js'
         ]);
     }
 
     function minifyJs() {
-        config('uglify:ng_modules_js', '.min.js', [
-            '**/module.js',
-            '**/*.js'
-        ]);
-
-        config('uglify:ng_modules_js', '.min.js', [
+        config('uglify:ng_modules_js', options.jsDir, '.min.js', [
             '**/module.js',
             '**/*.js'
         ]);
     }
 
     function concatCss() {
-        config('concat:ng_modules_css', '.css', [
+        config('concat:ng_modules_css', options.cssDir, '.css', [
             '**/*.css'
         ]);
     }
 
     function minifyCss() {
-        config('cssmin:ng_modules_css', '.min.css', [
+        config('cssmin:ng_modules_css', options.cssDir, '.min.css', [
             '**/*.css'
         ]);
     }
 
     function copyHtml() {
-        grunt.config('copy.files', {
+        grunt.config('copy.ng_modules_html', {
             cwd: options.src,
             src: '**/*.html',
             dest: path.join(options.dest, options.viewDir),
             expand: true
         });
 
-        grunt.task.run('copy');
+        grunt.task.run('copy:ng_modules_html');
     }
 
     function cacheHtml() {
@@ -95,7 +91,7 @@ module.exports = function (grunt) {
             var name = 'html2js.'+module;
 
             grunt.task.registerTask(name, 'Create templateCache files for the html', function() {});
-            grunt.config(name+'.dest', path.join(options.dest, module + '-templates.min.js'));
+            grunt.config(name+'.dest', path.join(options.dest, options.jsDir, module + '-templates.min.js'));
             grunt.config(name+'.src', [
                 path.join(options.src, module, '**/*.html')
             ]);
@@ -110,19 +106,18 @@ module.exports = function (grunt) {
                 removeScriptTypeAttributes: true,
                 removeStyleLinkTypeAttributes: true
             });
-        });
 
-        grunt.config('html2js.options.base', options.src);
-        grunt.config('html2js.options.rename', function(name) {
-            grunt.log.writeln('name', name);
-            return '/'+options.viewDir+'/' + name;
-        });
-        grunt.config('html2js.options.singleModule', true);
-        grunt.config('html2js.options.module', function(path, module) {
-            return 'templates.'+module;
-        });
+            grunt.config(name+'.options.base', options.src);
+            grunt.config(name+'.options.rename', function(name) {
+                return '/'+options.viewDir+'/' + name;
+            });
+            grunt.config(name+'.options.singleModule', true);
+            grunt.config(name+'.options.module', function(path, module) {
+                return 'templates.'+module;
+            });
 
-        grunt.task.run('html2js');
+            grunt.task.run(name.replace(/\./g, ':'));
+        });
     }
 
     function minifyCache() {
@@ -150,23 +145,38 @@ module.exports = function (grunt) {
         // === Set options
         options = this.options({
             viewDir: 'html',
+            cssDir: '',
+            jsDir: '',
             cacheViews: false,
-            minify: false,
-            minifyOnly: false
+            minify: false
         });
         options.src = this.data.src;
         options.dest = this.data.dest;
         options.modules = options.modules || fs.readdirSync(options.src);
-        options.minify = options.minify || options.minifyOnly;
+
+        // If options.minify is set in some way - propagate it
+        if(typeof options.minify === 'boolean' || typeof options.minify === 'string') {
+            options.minify = {
+                js: options.minify,
+                css: options.minify
+            }
+        } else if(typeof options.minify === 'object') {
+            options.minify.js = options.minify.js || false;
+            options.minify.css = options.minify.css || false;
+        }
 
         // === Run the task
-        if(!options.minifyOnly) {
+        if(options.minify.js !== 'only') {
             concatJs();
+        }
+        if(options.minify.css !== 'only') {
             concatCss();
         }
 
-        if(options.minify === true) {
+        if(options.minify.js === true) {
             minifyJs();
+        }
+        if(options.minify.css === true) {
             minifyCss();
         }
 
